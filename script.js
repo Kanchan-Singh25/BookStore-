@@ -1,68 +1,50 @@
-
-const api = 'www.themealdb.com/api/json/v1/1/search.php?s=';
-
-const searchForm = document.querySelector('form');
-const searchInput = document.querySelector('.search-input');
+const searchInput = document.querySelector(".search-input");
+const searchForm = document.querySelector("form");
 const imagesContainer = document.querySelector('.images-container');
-const recipeDetailsContent = document.querySelector('.recipe-details-content')
+
+const fetchBook = async (userQuery) => {
+  searchInput.value = "";
+  imagesContainer.innerHTML = "<h2>Loading....</h2>";
+
+  const response = await fetch(`https://openlibrary.org/search.json?q=${userQuery}&limit=10`)
+  const data = await response.json();
+  console.log(response);
+  console.log(data);
+  console.log(data.docs);
 
 
-const fetchImages = async (query) => {
-    searchInput.value="";
-    imagesContainer.innerHTML = "<h2>Loading...<h2/>";
+  imagesContainer.innerHTML = " ";
+  if (data.docs.length > 0) {
+    // iterate array
+    data.docs.forEach(curElem => {
+    // cover image id
+      const coverImage = curElem.cover_i;
+      const imageElement = document.createElement('div');
+      imageElement.classList.add('imageDiv');
+      imageElement.innerHTML = `
+        <h2>${curElem.title}</h2>   
+        <img src="https://covers.openlibrary.org/b/id/${coverImage}-M.jpg?">      
+        <h2>Author:${curElem.author_name[0]}</h2>    
+        `;
+      imagesContainer.appendChild(imageElement);
+    });
+  }
+  else {
+    imagesContainer.innerHTML = "<h2>Image not found</h2>"
+  }
 
-    const url = `https://www.themealdb.com/api/json/v1/1/search.php?s=${query}`;
-    const response = await fetch(url);
-    const data = await response.json();
-    console.log(data);
-    console.log(data.meals);
-   
-    imagesContainer.innerHTML = " ";
-    if (data.meals.length > 0) {
-        console.log(data.meals.length);
-        data.meals.forEach(curElem => {
-            // creating new div
-            const imageElement = document.createElement('div');
-            imageElement.classList.add('imageDiv');
-            imageElement.innerHTML = `<img src="${curElem.strMealThumb}">
-            <h2>${curElem.strMeal}</h2>`;
-   
-            // appending recipes in the container
-            imagesContainer.appendChild(imageElement);
-
-        });
-    }
-    else {
-        imagesContainer.innerHTML =`<h2>No image found</h2>`;
-    }
 }
 
-
-//Adding event listener to search form
+fetchBook();
 
 searchForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    console.log(searchInput.value);
-    const inputText = searchInput.value.trim();
-
-
-    // checking input text empty or not .
-    if (inputText !=='') {
-        fetchImages(inputText);
-    }
-    else {
-        imagesContainer.innerHTML = `<h2> Please enter a search query</h2>`;
-    }
-
-});
-
-
-
-
-
-
-
-
-
-
-
+  e.preventDefault();
+  console.log(searchInput.value);
+  const userInput = searchInput.value
+  if (userInput !== '') {
+    fetchBook(userInput);
+  }
+  else {
+    imagesContainer.innerHTML = "<h2>Please search book<h2>"
+  }
+})
